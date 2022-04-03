@@ -16,12 +16,10 @@ var (
 	log = golog.LoggerFor("systray")
 
 	systrayReady  func()
-	systrayExit   func()
 	menuItems     = make(map[uint32]*MenuItem)
 	menuItemsLock sync.RWMutex
 
 	currentID = uint32(0)
-	quitOnce  sync.Once
 )
 
 func init() {
@@ -71,19 +69,10 @@ func newMenuItem(title string, tooltip string, parent *MenuItem) *MenuItem {
 	}
 }
 
-// Run initializes GUI and starts the event loop, then invokes the onReady
-// callback. It blocks until systray.Quit() is called.
-func Run(onReady func(), onExit func()) {
-	Register(onReady, onExit)
-	nativeLoop()
-}
-
 // Register initializes GUI and registers the callbacks but relies on the
 // caller to run the event loop somewhere else. It's useful if the program
 // needs to show other UI elements, for example, webview.
-// To overcome some OS weirdness, On macOS versions before Catalina, calling
-// this does exactly the same as Run().
-func Register(onReady func(), onExit func()) {
+func Register(onReady func()) {
 	if onReady == nil {
 		systrayReady = func() {}
 	} else {
@@ -97,18 +86,7 @@ func Register(onReady func(), onExit func()) {
 			close(readyCh)
 		}
 	}
-	// unlike onReady, onExit runs in the event loop to make sure it has time to
-	// finish before the process terminates
-	if onExit == nil {
-		onExit = func() {}
-	}
-	systrayExit = onExit
 	registerSystray()
-}
-
-// Quit the systray
-func Quit() {
-	quitOnce.Do(quit)
 }
 
 // AddMenuItem adds a menu item with the designated title and tooltip.

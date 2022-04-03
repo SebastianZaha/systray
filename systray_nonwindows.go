@@ -1,5 +1,5 @@
+//go:build !windows
 // +build !windows
-// go:build !windows
 
 package systray
 
@@ -12,14 +12,6 @@ import (
 
 func registerSystray() {
 	C.registerSystray()
-}
-
-func nativeLoop() {
-	C.nativeLoop()
-}
-
-func quit() {
-	C.quit()
 }
 
 // SetIcon sets the systray icon.
@@ -88,11 +80,6 @@ func showMenuItem(item *MenuItem) {
 //export systray_ready
 func systray_ready() {
 	systrayReady()
-}
-
-//export systray_on_exit
-func systray_on_exit() {
-	systrayExit()
 }
 
 //export systray_menu_item_selected

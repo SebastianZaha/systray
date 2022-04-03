@@ -41,12 +41,6 @@ void registerSystray(void) {
 	systray_ready();
 }
 
-int nativeLoop(void) {
-	gtk_main();
-	systray_on_exit();
-	return 0;
-}
-
 void _unlink_temp_file() {
 	if (strlen(temp_file_name) != 0) {
 		int ret = unlink(temp_file_name);

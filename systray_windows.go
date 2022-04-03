@@ -1,3 +1,4 @@
+//go:build windows
 // +build windows
 
 package systray
@@ -274,7 +275,6 @@ func (t *winTray) wndProc(hWnd windows.Handle, message uint32, wParam, lParam ui
 			t.nid.delete()
 		}
 		t.muNID.Unlock()
-		systrayExit()
 	case t.wmSystrayMessage:
 		switch lParam {
 		case WM_RBUTTONUP, WM_LBUTTONUP:
@@ -776,47 +776,6 @@ func registerSystray() {
 	}
 
 	systrayReady()
-}
-
-func nativeLoop() {
-	// Main message pump.
-	m := &struct {
-		WindowHandle windows.Handle
-		Message      uint32
-		Wparam       uintptr
-		Lparam       uintptr
-		Time         uint32
-		Pt           point
-	}{}
-	for {
-		ret, _, err := pGetMessage.Call(uintptr(unsafe.Pointer(m)), 0, 0, 0)
-
-		// If the function retrieves a message other than WM_QUIT, the return value is nonzero.
-		// If the function retrieves the WM_QUIT message, the return value is zero.
-		// If there is an error, the return value is -1
-		// https://msdn.microsoft.com/en-us/library/windows/desktop/ms644936(v=vs.85).aspx
-		switch int32(ret) {
-		case -1:
-			log.Errorf("Error at message loop: %v", err)
-			return
-		case 0:
-			return
-		default:
-			pTranslateMessage.Call(uintptr(unsafe.Pointer(m)))
-			pDispatchMessage.Call(uintptr(unsafe.Pointer(m)))
-		}
-	}
-}
-
-func quit() {
-	const WM_CLOSE = 0x0010
-
-	pPostMessage.Call(
-		uintptr(wt.window),
-		WM_CLOSE,
-		0,
-		0,
-	)
 }
 
 func iconBytesToFilePath(iconBytes []byte) (string, error) {

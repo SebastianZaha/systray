@@ -50,33 +50,25 @@ withParentMenuId: (int)theParentMenuId
 }
 @end
 
-@interface AppDelegate: NSObject <NSApplicationDelegate>
+@interface Tray: NSObject
   - (void) add_or_update_menu_item:(MenuItem*) item;
   - (IBAction)menuHandler:(id)sender;
-  @property (assign) IBOutlet NSWindow *window;
   @end
 
-  @implementation AppDelegate
+  @implementation Tray
 {
   NSStatusItem *statusItem;
   NSMenu *menu;
   NSCondition* cond;
 }
 
-@synthesize window = _window;
-
-- (void)applicationDidFinishLaunching:(NSNotification *)aNotification
+- (void)create
 {
   self->statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
   self->menu = [[NSMenu alloc] init];
   [self->menu setAutoenablesItems: FALSE];
   [self->statusItem setMenu:self->menu];
   systray_ready();
-}
-
-- (void)applicationWillTerminate:(NSNotification *)aNotification
-{
-  systray_on_exit();
 }
 
 - (void)setIcon:(NSImage *)image {
@@ -203,34 +195,16 @@ NSMenuItem *find_menu_item(NSMenu *ourMenu, NSNumber *menuId) {
   }
 }
 
-- (void) quit
-{
-  [NSApp terminate:self];
-}
-
 @end
 
+Tray *tray;
 void registerSystray(void) {
-  AppDelegate *delegate = [[AppDelegate alloc] init];
-  [[NSApplication sharedApplication] setDelegate:delegate];
-  // A workaround to avoid crashing on macOS versions before Catalina. Somehow
-  // SIGSEGV would happen inside AppKit if [NSApp run] is called from a
-  // different function, even if that function is called right after this.
-  if (floor(NSAppKitVersionNumber) <= /*NSAppKitVersionNumber10_14*/ 1671){
-    [NSApp run];
-  }
-}
-
-int nativeLoop(void) {
-  if (floor(NSAppKitVersionNumber) > /*NSAppKitVersionNumber10_14*/ 1671){
-    [NSApp run];
-  }
-  return EXIT_SUCCESS;
+  tray = [[Tray alloc] init];
+  [tray create];
 }
 
 void runInMainThread(SEL method, id object) {
-  [(AppDelegate*)[NSApp delegate]
-    performSelectorOnMainThread:method
+  [tray performSelectorOnMainThread:method
                      withObject:object
                   waitUntilDone: YES];
 }
@@ -286,8 +260,4 @@ void hide_menu_item(int menuId) {
 void show_menu_item(int menuId) {
   NSNumber *mId = [NSNumber numberWithInt:menuId];
   runInMainThread(@selector(show_menu_item:), (id)mId);
-}
-
-void quit() {
-  runInMainThread(@selector(quit), nil);
 }
