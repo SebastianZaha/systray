@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 
-	"github.com/skratchdot/open-golang/open"
 	"github.com/webview/webview"
 
 	"github.com/ghostiam/systray"
@@ -49,7 +48,6 @@ func onReady(w webview.WebView) func() {
 			subMenuBottom := subMenuMiddle.AddSubMenuItemCheckbox("SubMenuBottom - Toggle Panic!", "SubMenu Test (bottom) - Hide/Show Panic!", false)
 			subMenuBottom2 := subMenuMiddle.AddSubMenuItem("SubMenuBottom - Panic!", "SubMenu Test (bottom)")
 
-			mUrl := systray.AddMenuItem("Open UI", "my home")
 			mQuit := systray.AddMenuItem("退出", "Quit the whole app")
 
 			// Sets the icon of a menu item. Only available on Mac.
@@ -89,8 +87,6 @@ func onReady(w webview.WebView) func() {
 				case <-mEnabled.ClickedCh:
 					mEnabled.SetTitle("Disabled")
 					mEnabled.Disable()
-				case <-mUrl.ClickedCh:
-					open.Run("https://www.getlantern.org")
 				case <-subMenuBottom2.ClickedCh:
 					panic("panic button pressed")
 				case <-subMenuBottom.ClickedCh:
